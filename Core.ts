@@ -4,12 +4,14 @@
  */
 const version = "1.0.0"
 import { Controller } from "@dpCore/Controller"
+import { Entity } from "@dpCore/Entity"
 const fs = require("fs");
 const jsonmini = require("jsonminify");
 const express = require('express');
 const app = express();
 const path = require("path");
 import mapCore from "./lib/map.core"
+
 
 interface runConfig {
     port: number,// 启动的端口
@@ -287,8 +289,11 @@ const MiddlewareInject = (func:any) => {
 /**
  * 实体模型注入
  */
-const EntityInject = () => {
-
+const EntityInject = (Entitys:Entity[]) => {
+    return function (target: any) {
+        target.prototype.$Meta = target.prototype.$Meta ? target.prototype.$Meta : {}
+        target.prototype.$Meta.$Entitys = Entitys;
+    }
 }
 
 // interface Config {
