@@ -260,8 +260,8 @@ interface Config {
         port: number,
         pass: string
     }
-
     viewPath?: string,// 模板引擎的路径
+    staticPath?:string[],// 静态文件的路径 
     https?:{
         use:number,// 是否启用https 1 为启用， 0 为禁用
         key:string,// key 文件地址

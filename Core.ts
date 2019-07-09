@@ -11,8 +11,6 @@ const app = express();
 const path = require("path");
 import mapCore from "./lib/map.core"
 
-
-
 interface runConfig {
     port: number,// 启动的端口
     protocal: {
@@ -21,10 +19,11 @@ interface runConfig {
         key?: string,// ssl证书私钥路径
     }
 }
+
+
 class Application {
 
     //protected $Meta = {} // 注解存放的对象
-
 
     constructor() {
         //console.log("app contructor")
@@ -78,7 +77,6 @@ class Application {
         const $dataChecker = require("./lib/validate.core.v1").default
         global['$dataChecker'] = $dataChecker;
         
-
         if ($config.cross == 1) {
             app.use((req, res, next) => {
                 res.header("Access-Control-Allow-Origin", "*");

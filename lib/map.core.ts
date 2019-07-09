@@ -14,7 +14,11 @@ export default (app, controller, $config) => {
     const dealOutput = (result, res) => {
         if(result._TEMPLATE_) // 说明模板输出
         {
-
+            if(!result.template || !result.data)
+            {
+                throw new Error("模板输出时报错，可能是因为template 或 data 参数为空");
+            }
+            res.render(result.template,result.data)
         }
         else // 普通的输出
         {

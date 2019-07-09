@@ -2,21 +2,21 @@ const path = require("path");
 const fs = require("fs");
 import { OriginClass } from "./lib/origin"
 import $common from "@dpCore/lib/utils"
-const { isString, isObject, isArray, isNumber ,isEmptyObject} = $common.getType()
+const { isString, isObject, isArray, isNumber, isEmptyObject } = $common.getType()
 
 
 
 //控制器方法参数 接口
 interface actionPathObj {
-    path?:string,//路由
-    comment?:string,// 接口描述
-    desc?:string,// 接口描述
-    input?:boolean|{
-         body?:object,// body参数格式
-         query?:object,// query参数格式
+    path?: string,//路由
+    comment?: string,// 接口描述
+    desc?: string,// 接口描述
+    input?: boolean | {
+        body?: object,// body参数格式
+        query?: object,// query参数格式
     },
-    isolation?:boolean,// 是否是孤立方法，true 则方法该方法时，不经过_init 方法
-    output?:object
+    isolation?: boolean,// 是否是孤立方法，true 则方法该方法时，不经过_init 方法
+    output?: object
 }
 
 /**
@@ -26,7 +26,7 @@ interface actionPathObj {
 const Router = (path: string) => {
 
     return function (target: any) {
-        target.prototype.$Meta?target.prototype.$Meta:{}
+        target.prototype.$Meta ? target.prototype.$Meta : {}
         target.prototype.$Meta.baseUrl = path;
     };
 
@@ -71,7 +71,7 @@ const Exception = () => {
         if (!target.$Meta.Get) {
             target.$Meta.Exception = methodName;
         }
-        
+
     }
 
 }
@@ -89,7 +89,7 @@ const Get = (path?: actionPathObj | string) => {
         }
 
         if (isObject(path)) {
-            path = <actionPathObj> path;
+            path = <actionPathObj>path;
             let mname = _getPATH(path.path, methodName, 'get');
             target.$Meta.Get.set(mname, target[methodName]);
             if (!target.$Meta.GetRestraint) {
@@ -103,7 +103,7 @@ const Get = (path?: actionPathObj | string) => {
             target.$Meta.GetAction2PathMap.set(mname, methodName);// 缓存控制器名与对应的url地址
         }
         else {
-            path = <string> path;
+            path = <string>path;
             let mname = _getPATH(path, methodName, 'get');
             target.$Meta.Get.set(mname, target[methodName]);
             if (!target.$Meta.GetAction2PathMap) {
@@ -129,13 +129,13 @@ const Post = (path?: actionPathObj | string, ) => {
         }
 
         if (isObject(path)) {
-            path = <actionPathObj> path;
+            path = <actionPathObj>path;
             let mname = _getPATH(path.path, methodName, 'post');
             target.$Meta.Post.set(mname, target[methodName]);
             if (!target.$Meta.PostRestraint) {
                 target.$Meta.PostRestraint = new Map();
             }
-            target.$Meta.PostRestraint.set(mname,path);
+            target.$Meta.PostRestraint.set(mname, path);
 
             if (!target.$Meta.PostAction2PathMap) {
                 target.$Meta.PostAction2PathMap = new Map();
@@ -144,7 +144,7 @@ const Post = (path?: actionPathObj | string, ) => {
 
         }
         else {
-            path = <string> path;
+            path = <string>path;
             let mname = _getPATH(path, methodName, 'post');
             target.$Meta.Post.set(mname, target[methodName]);
             if (!target.$Meta.PostAction2PathMap) {
@@ -166,7 +166,7 @@ const Put = (path?: actionPathObj | string) => {
         !target.$Meta && (target.$Meta = {});
 
         if (isObject(path)) {
-            path = <actionPathObj> path;
+            path = <actionPathObj>path;
             let mname = _getPATH(path.path, methodName, 'put');
             target.$Meta.Put.set(mname, target[methodName]);
             if (!target.$Meta.PutRestraint) {
@@ -182,7 +182,7 @@ const Put = (path?: actionPathObj | string) => {
         }
         else {
 
-            path = <string> path;
+            path = <string>path;
             if (!target.$Meta.Put) {
                 target.$Meta.Put = new Map();
             }
@@ -210,13 +210,13 @@ const Delete = (path?: actionPathObj | string) => {
 
 
         if (isObject(path)) {
-            path = <actionPathObj> path;
+            path = <actionPathObj>path;
             let mname = _getPATH(path.path, methodName, 'delete');
             target.$Meta.Delete.set(mname, target[methodName]);
             if (!target.$Meta.DeleteRestraint) {
                 target.$Meta.DeleteRestraint = new Map();
             }
-            target.$Meta.DeleteRestraint.set(mname,path);
+            target.$Meta.DeleteRestraint.set(mname, path);
 
             if (!target.$Meta.DeleteAction2PathMap) {
                 target.$Meta.DeleteAction2PathMap = new Map();
@@ -224,7 +224,7 @@ const Delete = (path?: actionPathObj | string) => {
             target.$Meta.DeleteAction2PathMap.set(mname, methodName);// 缓存控制器名与对应的url地址
         }
         else {
-            path = <string> path;
+            path = <string>path;
             if (!target.$Meta.Delete) {
                 target.$Meta.Delete = new Map();
             }
@@ -251,7 +251,7 @@ const All = (path?: actionPathObj | string) => {
 
 
         if (isObject(path)) {
-            path = <actionPathObj> path;
+            path = <actionPathObj>path;
             let mname = _getPATH(path.path, methodName, 'all');
             target.$Meta.All.set(mname, target[methodName]);
             if (!target.$Meta.AllRestraint) {
@@ -266,7 +266,7 @@ const All = (path?: actionPathObj | string) => {
 
         }
         else {
-            path = <string> path;
+            path = <string>path;
             if (!target.$Meta.All) {
                 target.$Meta.All = new Map();
             }
@@ -283,13 +283,12 @@ const All = (path?: actionPathObj | string) => {
 
 }
 
-
 class Controller extends OriginClass {
     public req: request;
     public res: response;
 
-    public response:response;
-    public request:request;
+    public response: response;
+    public request: request;
 
     public isPost: boolean;
     public isGet: boolean;
@@ -347,8 +346,8 @@ class Controller extends OriginClass {
         this.action = action;
     }
 
-    setMethod(req?:any) {
-        req?req:this.req
+    setMethod(req?: any) {
+        req ? req : this.req
         if (!req || !req.method) {
             throw new Error("控制器请求时，setMethod 初始化失败");
         }
@@ -407,33 +406,53 @@ class Controller extends OriginClass {
         this.res.display(url, data);
     }
 
+    /**
+     * 模板输出方法
+     * @param template 模板名字
+     * @param data  输出的数据
+     */
+    show(template: string, data?: any) {
+        if (!data || data == undefined) {
+            data = {};
+        }
+        // 系统数据
+        data['$sys'] = {
+            curl: this.getCurrentUrl()
+        }
+        //读取基础数据进行输出
+        let assign = this.getAssign() ? this.getAssign() : {}
+        data = Object.assign(assign, data);
+        return {
+            _TEMPLATE_:true,
+            template:template,
+            data:data,
+        }
+    }
+
+
     // 数据输出
     async success(data) {
         try {
             let url = this.getActionUrl();
             let restraint = null;
             if (this.isGet) {
-                if(this.$Meta && this.$Meta.GetRestraint)
-                {
+                if (this.$Meta && this.$Meta.GetRestraint) {
                     restraint = this.$Meta.GetRestraint.get(this.action)
                 }
-                
+
             }
             if (this.isPost) {
-                if(this.$Meta && this.$Meta.PostRestraint)
-                {
+                if (this.$Meta && this.$Meta.PostRestraint) {
                     restraint = this.$Meta.PostRestraint.get(this.action)
                 }
             }
             if (restraint && restraint.output) {
-                if(isEmptyObject(restraint.output))
-                {
-                    if(!isEmptyObject(data))
-                    {
+                if (isEmptyObject(restraint.output)) {
+                    if (!isEmptyObject(data)) {
                         throw new Error("定了空对象的输出格式，但是输出内容并不是空对象");
                     }
                 }
-                if (!$common.compareDataType(data,restraint.output)) {
+                if (!$common.compareDataType(data, restraint.output)) {
                     throw new Error(`接口：${url}  输出时,期望的数据和真实输出的数据数据类型不相同`)
                 }
                 if (isArray(data)) {
@@ -441,25 +460,20 @@ class Controller extends OriginClass {
                         await $common.inputChecker(d, restraint.output)
                     }
                 }
-                else if(isObject(data))
-                {
+                else if (isObject(data)) {
                     await $common.inputChecker(data, restraint.output)
                 }
-                else if(data === false)
-                {
-                   return this.res.ok(data);
+                else if (data === false) {
+                    return this.res.ok(data);
                 }
-                else
-                {
-                     throw new Error("输出的内容只支持对象或者数组");
+                else {
+                    throw new Error("输出的内容只支持对象或者数组");
                 }
 
             }
-            else
-            {
+            else {
                 //如果不设定 输出的格式，但是还有输出，那么将会报错
-                if(data)
-                {
+                if (data) {
                     throw new Error("本接口未定义输出数据格式，无法输出数据");
                 }
             }
@@ -477,8 +491,8 @@ class Controller extends OriginClass {
     }
 
     // 重定向
-    rego(url: string, code?: any,data?:object) {
-        this.res.rego(url, code,data);
+    rego(url: string, code?: any, data?: object) {
+        this.res.rego(url, code, data);
     }
 
     // 重定向
@@ -490,7 +504,7 @@ class Controller extends OriginClass {
     error(err) {
 
         if ($config.debug == 1) {
-            console.error("异常,",err)
+            console.error("异常,", err)
             this.res.error({ message: err.message, stack: err.stack })
         }
         else {
@@ -499,13 +513,12 @@ class Controller extends OriginClass {
     }
 
     // 控制器还原,每个请求的控制还原
-    reset()
-    {
+    reset() {
         this.isGet = false;
         this.isPost = false;
         this.isPut = false;
         this.isDelete = false;
-    }    
+    }
 
 
 
@@ -553,4 +566,4 @@ class Controller extends OriginClass {
 }
 
 
-export { Router, Controller, Get, Post, Put, Delete, All ,Exception}
+export { Router, Controller, Get, Post, Put, Delete, All, Exception }
