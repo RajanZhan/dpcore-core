@@ -243,7 +243,6 @@ export default (app, controller, $config) => {
                             }
                             contrl.error(err)
                         }
-
                         catch (err_in_cache) {
                             let err = {
                                 position: "map.core.ts",
