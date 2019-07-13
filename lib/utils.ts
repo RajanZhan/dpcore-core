@@ -160,15 +160,6 @@ const inputChecker1 = async (input, rules) => {
 
 
 
-
-    // if (isArray(rules)) {
-    //     // if(!isArray(input))
-    //     // {
-    //     //     throw new Error(`规则输出期望为array类型，但对应输出并不是array`);
-    //     // }
-    //     rules = rules[0]
-    // }
-
     for (let i in rules) {
         if (!i) {
             continue;
@@ -589,6 +580,26 @@ const getAbsolutePath = (dir?: string) => {
     }
 }
 
+const dateFormate = (date: Date | number, fmt: string): string => {
+    var dd = new Date(date);
+    function d(fmt): string { //author: meizz 
+        var o = {
+            "M+": dd.getMonth() + 1, //月份 
+            "d+": dd.getDate(), //日 
+            "h+": dd.getHours(), //小时 
+            "m+": dd.getMinutes(), //分 
+            "s+": dd.getSeconds(), //秒 
+            "q+": Math.floor((dd.getMonth() + 3) / 3), //季度 
+            "S": dd.getMilliseconds() //毫秒 
+        };
+        if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (dd.getFullYear() + "").substr(4 - RegExp.$1.length));
+        for (var k in o)
+            if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+        return fmt;
+    }
+    return d(fmt);
+
+}
 
 export default {
 
@@ -605,6 +616,6 @@ export default {
     inputChecker1,
     compareDataType,
     getAbsolutePath,
-
+    dateFormate,
 
 }

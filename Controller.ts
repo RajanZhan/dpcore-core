@@ -16,7 +16,7 @@ interface actionPathObj {
         query?: object,// query参数格式
     },
     isolation?: boolean,// 是否是孤立方法，true 则方法该方法时，不经过_init 方法
-    output?: object
+    output?: object|string
 }
 
 /**

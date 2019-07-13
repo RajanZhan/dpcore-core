@@ -2,7 +2,9 @@ var chokidar = require('chokidar');
 var path = require("path");
 var fs = require("fs");
 const os = require("os");
+const colors = require("colors");
 console.log("自动编译监听中...")
+import utils from "./lib/utils"
 const translateCompilePath = () => {
 
     console.log(path.join(__dirname,'../node_modules'));
@@ -12,9 +14,11 @@ const translateCompilePath = () => {
         ignored: [/^([\w\W]*)map$/, "./node_modules/*", "bin/node_modules/*"]
     }).unwatch([path.join(__dirname,'../node_modules')]).on('all', (event, path1) => {
 
-        //console.log(path1);
+        
+        let tpath = path1.replace(/\\/g,'/')
+        //console.log(tpath);
         let extname = path.extname(path1);
-        if(extname != '.js')
+        if(extname != '.js' || (tpath.indexOf("/core/debug.js") != -1) )
         {
             return;
         }
@@ -28,9 +32,14 @@ const translateCompilePath = () => {
             //console.log(nowtime - lasttime,'时间间隔')
             if((nowtime - lasttime) < 1300)
             {
-
+                let content = fs.readFileSync(fullpath);
+                if( !( content && (content.indexOf("@dpCore") != -1) )  )
+                {
+                    //console.log("太靠近了");
+                    return ;
+                }
                 //console.log("太靠近了");
-                return ;
+               
             }
            
         }
@@ -47,8 +56,11 @@ const translateCompilePath = () => {
                     //console.log("替换文件 ",new Date().getSeconds(), fullpath)
                     setTimeout(() => {
                         fs.writeFile(fullpath, codeContent,function(err){
-                            if(err) return console.log('写文件操作失败',err,fullpath);
-                            else console.log('编译结果写文件成功 ');
+                            if(err){
+                                return console.log('写文件操作失败',err,fullpath);
+                            } 
+                            let msg:any = ` ${ utils.dateFormate(new Date(),"hh:mm:ss") } 编译结果写文件成功 `;
+                            console.log(msg.cyan);
                             pathMap.set(fullpath,new Date().getTime())
                         });
                     }, 1000);

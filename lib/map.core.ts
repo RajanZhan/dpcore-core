@@ -3,27 +3,95 @@
 // import controller from "../common/map"
 
 import $logger from "@dpCore/lib/logger"
+import utils from "@dpCore/lib/utils"
+const { isArray, isString, isObject, isEmptyObject } = utils.getType()
+const inputChecker1 = utils.inputChecker1;// 数据合法性校验方法
 
 export default (app, controller, $config) => {
     if (!controller) {
         console.log("未注册任何控制器...");
         return;
     }
-
     // 统一输出处理
-    const dealOutput = (result, res) => {
-        if(result._TEMPLATE_) // 说明模板输出
-        {
-            if(!result.template || !result.data)
+    const dealOutput = async (result, res, cntl) => {
+        try {
+            if (result._TEMPLATE_) // 说明模板输出
             {
-                throw new Error("模板输出时报错，可能是因为template 或 data 参数为空");
+                if (!result.template || !result.data) {
+                    throw new Error("模板输出时报错，可能是因为template 或 data 参数为空");
+                }
+                res.render(result.template, result.data)
             }
-            res.render(result.template,result.data)
+            else // 普通的输出
+            {
+                // 这里需要做数据输入的校验
+
+
+                if (result === false) {
+                    return res.send(result)
+                }
+                let url = cntl.getActionUrl();
+                let restraint = null;
+                if (cntl.isGet) {
+                    if (cntl.$Meta && cntl.$Meta.GetRestraint) {
+                        restraint = cntl.$Meta.GetRestraint.get(cntl.action)
+                    }
+
+                }
+                if (cntl.isPost) {
+                    if (cntl.$Meta && cntl.$Meta.PostRestraint) {
+                        restraint = cntl.$Meta.PostRestraint.get(cntl.action)
+                    }
+                }
+                if (restraint && restraint.output) {
+                    if (isEmptyObject(restraint.output)) {
+                        if (!isEmptyObject(result)) {
+                            throw new Error("定了空对象的输出格式，但是输出内容并不是空对象");
+                        }
+                    }
+                    if (!$common.compareDataType(result, restraint.output)) {
+                        throw new Error(`接口：${url}  输出时,期望的数据和真实输出的数据数据类型不相同`)
+                    }
+                    if (isArray(result)) {
+                        for (let d of result) {
+                            await $common.inputChecker(d, restraint.output)
+                        }
+                    }
+                    else if (isString(result)) {
+                        if (!isString(restraint.output)) {
+                            throw new Error(`接口：${url}  输出时,输出内容为字符串，但是output规则却不是字符串`)
+                        }
+                        // 校验数据合法性
+                        await inputChecker1({ result: result }, { result: restraint.output });
+                        return res.send(result)
+                    }
+                    else if (isObject(result)) {
+                        await $common.inputChecker(result, restraint.output)
+                    }
+                    else if (result === false) {
+                        return res.send(result);
+                    }
+                    else {
+                        throw new Error("输出的内容只支持对象或者数组");
+                    }
+
+                }
+                else {
+                    //如果不设定 输出的格式，但是还有输出，那么将会报错
+                    if (result) {
+                        throw new Error("本接口未定义输出数据格式，无法输出数据");
+                    }
+                }
+                res.send(result)
+            }
+
         }
-        else // 普通的输出
-        {
-            // 这里需要做数据输入的校验
-            res.send(result)
+        catch (err) {
+            err.message += ",接口数据输出发生异常，接口：" + cntl.getActionUrl();
+            //throw err;
+            res.status(500)
+            console.error(err)
+            res.send(err.message)
         }
     }
     var inputChecker = $common.inputChecker1;
@@ -163,7 +231,7 @@ export default (app, controller, $config) => {
                         let curl = ControllerUrlMap.get(`${map}.${actionName}.get`)
                         contrl.setCurrentUrl(curl);
                         // 处理接口输出
-                        dealOutput(await func.call(contrl), res);
+                        dealOutput(await func.call(contrl), res, contrl);
                     }
                     catch (err) {
                         try {
@@ -175,7 +243,7 @@ export default (app, controller, $config) => {
                             }
                             contrl.error(err)
                         }
-                        
+
                         catch (err_in_cache) {
                             let err = {
                                 position: "map.core.ts",
@@ -256,7 +324,7 @@ export default (app, controller, $config) => {
 
                         let curl = ControllerUrlMap.get(`${map}.${actionName}.post`)
                         contrl.setCurrentUrl(curl);
-                        dealOutput(await func.call(contrl), res);
+                        dealOutput(await func.call(contrl), res, contrl);
 
                     }
                     catch (err) {
@@ -352,7 +420,7 @@ export default (app, controller, $config) => {
                         }
                         let curl = ControllerUrlMap.get(`${map}.${actionName}.put`)
                         contrl.setCurrentUrl(curl);
-                        dealOutput(await func.call(contrl), res);
+                        dealOutput(await func.call(contrl), res, contrl);
 
                     }
                     catch (err) {
@@ -443,8 +511,8 @@ export default (app, controller, $config) => {
                         }
                         let curl = ControllerUrlMap.get(`${map}.${actionName}.delete`)
                         contrl.setCurrentUrl(curl);
-                        dealOutput(await func.call(contrl), res);
-                        
+                        dealOutput(await func.call(contrl), res, contrl);
+
                     }
                     catch (err) {
                         try {
@@ -534,7 +602,7 @@ export default (app, controller, $config) => {
                         }
                         let curl = ControllerUrlMap.get(`${map}.${actionName}.all`)
                         contrl.setCurrentUrl(curl);
-                        dealOutput(await func.call(contrl), res);
+                        dealOutput(await func.call(contrl), res, contrl);
                     }
                     catch (err) {
 
