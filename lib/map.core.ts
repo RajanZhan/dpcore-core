@@ -3,19 +3,15 @@
 // import controller from "../common/map"
 
 import $logger from "@dpCore/lib/logger"
-<<<<<<< HEAD
 import utils from "@dpCore/lib/utils"
 const { isArray, isString, isObject, isEmptyObject } = utils.getType()
 const inputChecker1 = utils.inputChecker1;// 数据合法性校验方法
-=======
->>>>>>> 1e74a50bef6cd759584fa18b6d30caf1972162c6
 
 export default (app, controller, $config) => {
     if (!controller) {
         console.log("未注册任何控制器...");
         return;
     }
-<<<<<<< HEAD
     // 统一输出处理
     const dealOutput = async (result, res, cntl) => {
         try {
@@ -96,23 +92,6 @@ export default (app, controller, $config) => {
             res.status(500)
             console.error(err)
             res.send(err.message)
-=======
-
-    // 统一输出处理
-    const dealOutput = (result, res) => {
-        if(result._TEMPLATE_) // 说明模板输出
-        {
-            if(!result.template || !result.data)
-            {
-                throw new Error("模板输出时报错，可能是因为template 或 data 参数为空");
-            }
-            res.render(result.template,result.data)
-        }
-        else // 普通的输出
-        {
-            // 这里需要做数据输入的校验
-            res.send(result)
->>>>>>> 1e74a50bef6cd759584fa18b6d30caf1972162c6
         }
     }
     var inputChecker = $common.inputChecker1;
@@ -252,11 +231,7 @@ export default (app, controller, $config) => {
                         let curl = ControllerUrlMap.get(`${map}.${actionName}.get`)
                         contrl.setCurrentUrl(curl);
                         // 处理接口输出
-<<<<<<< HEAD
                         dealOutput(await func.call(contrl), res, contrl);
-=======
-                        dealOutput(await func.call(contrl), res);
->>>>>>> 1e74a50bef6cd759584fa18b6d30caf1972162c6
                     }
                     catch (err) {
                         try {
@@ -268,11 +243,6 @@ export default (app, controller, $config) => {
                             }
                             contrl.error(err)
                         }
-<<<<<<< HEAD
-
-=======
-                        
->>>>>>> 1e74a50bef6cd759584fa18b6d30caf1972162c6
                         catch (err_in_cache) {
                             let err = {
                                 position: "map.core.ts",
@@ -353,11 +323,7 @@ export default (app, controller, $config) => {
 
                         let curl = ControllerUrlMap.get(`${map}.${actionName}.post`)
                         contrl.setCurrentUrl(curl);
-<<<<<<< HEAD
                         dealOutput(await func.call(contrl), res, contrl);
-=======
-                        dealOutput(await func.call(contrl), res);
->>>>>>> 1e74a50bef6cd759584fa18b6d30caf1972162c6
 
                     }
                     catch (err) {
@@ -453,11 +419,7 @@ export default (app, controller, $config) => {
                         }
                         let curl = ControllerUrlMap.get(`${map}.${actionName}.put`)
                         contrl.setCurrentUrl(curl);
-<<<<<<< HEAD
                         dealOutput(await func.call(contrl), res, contrl);
-=======
-                        dealOutput(await func.call(contrl), res);
->>>>>>> 1e74a50bef6cd759584fa18b6d30caf1972162c6
 
                     }
                     catch (err) {
@@ -548,13 +510,8 @@ export default (app, controller, $config) => {
                         }
                         let curl = ControllerUrlMap.get(`${map}.${actionName}.delete`)
                         contrl.setCurrentUrl(curl);
-<<<<<<< HEAD
                         dealOutput(await func.call(contrl), res, contrl);
 
-=======
-                        dealOutput(await func.call(contrl), res);
-                        
->>>>>>> 1e74a50bef6cd759584fa18b6d30caf1972162c6
                     }
                     catch (err) {
                         try {
@@ -644,11 +601,7 @@ export default (app, controller, $config) => {
                         }
                         let curl = ControllerUrlMap.get(`${map}.${actionName}.all`)
                         contrl.setCurrentUrl(curl);
-<<<<<<< HEAD
                         dealOutput(await func.call(contrl), res, contrl);
-=======
-                        dealOutput(await func.call(contrl), res);
->>>>>>> 1e74a50bef6cd759584fa18b6d30caf1972162c6
                     }
                     catch (err) {
 

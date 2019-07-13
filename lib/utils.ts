@@ -160,18 +160,6 @@ const inputChecker1 = async (input, rules) => {
 
 
 
-<<<<<<< HEAD
-=======
-
-    // if (isArray(rules)) {
-    //     // if(!isArray(input))
-    //     // {
-    //     //     throw new Error(`规则输出期望为array类型，但对应输出并不是array`);
-    //     // }
-    //     rules = rules[0]
-    // }
-
->>>>>>> 1e74a50bef6cd759584fa18b6d30caf1972162c6
     for (let i in rules) {
         if (!i) {
             continue;
@@ -592,7 +580,6 @@ const getAbsolutePath = (dir?: string) => {
     }
 }
 
-<<<<<<< HEAD
 const dateFormate = (date: Date | number, fmt: string): string => {
     var dd = new Date(date);
     function d(fmt): string { //author: meizz 
@@ -613,8 +600,6 @@ const dateFormate = (date: Date | number, fmt: string): string => {
     return d(fmt);
 
 }
-=======
->>>>>>> 1e74a50bef6cd759584fa18b6d30caf1972162c6
 
 export default {
 
@@ -631,10 +616,6 @@ export default {
     inputChecker1,
     compareDataType,
     getAbsolutePath,
-<<<<<<< HEAD
     dateFormate,
-=======
-
->>>>>>> 1e74a50bef6cd759584fa18b6d30caf1972162c6
 
 }
