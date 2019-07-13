@@ -36,13 +36,13 @@ class Application {
     /**
      * 内部启动方法
      */
-    public async  start(): Promise<{ server: any,app:any }> {
+    public async  start(): Promise<{ server: any, app: any }> {
         interface AppInstance {
             $Meta: {
                 $config: Config,
                 $Controllers: Controller | Controller[],
-                $Middleware: (app:{use:any}) => {},
-                $Validate:object,
+                $Middleware: (app: { use: any }) => {},
+                $Validate: object,
             }
         }
         var instance: AppInstance = <any>this;
@@ -52,11 +52,11 @@ class Application {
         const $Validate = instance.$Meta.$Validate;
         // console.log($config, "应用启动")
         // return;
-        const colors =require("colors");
+        const colors = require("colors");
         const template = require('art-template');
         const cookieParser = require('cookie-parser');
         const bodyParser = require('body-parser');
-    
+
         //const middleware = require("./common/middleWare");
         const logger = require("./lib/logger.js").default;
         const http = require("http");
@@ -78,7 +78,7 @@ class Application {
         global['$Validate'] = $Validate;
         const $dataChecker = require("./lib/validate.core.v1").default
         global['$dataChecker'] = $dataChecker;
-        
+
         if ($config.cross == 1) {
             app.use((req, res, next) => {
                 res.header("Access-Control-Allow-Origin", "*");
@@ -88,8 +88,8 @@ class Application {
                 //console.log("跨域处理hahah");
             });
         }
-        app.use((req,res,next)=>{
-            res.header("X-Powered-By",'dpCore v'+version)
+        app.use((req, res, next) => {
+            res.header("X-Powered-By", 'dpCore v' + version)
             next();
         })
         app.use(bodyParser.json({
@@ -121,18 +121,17 @@ class Application {
         app.engine('html', template.__express);
         app.set('view engine', 'html');
         if ($config.debug == 1) {
-            app.set('views', path.join(__dirname, '../../', $config.viewPath?$config.viewPath:"views"));
+            app.set('views', path.join(__dirname, '../../', $config.viewPath ? $config.viewPath : "views"));
             //console.log("set views ",path.join(__dirname,'../src/', $config.viewPath));
         } else {
-            app.set('views', path.join(__dirname, $config.viewPath?$config.viewPath:"views"));
+            app.set('views', path.join(__dirname, $config.viewPath ? $config.viewPath : "views"));
         }
         //挂载静态目录
         if ($config.debug == 1) {
 
             if ($config.staticPath && $config.staticPath.length > 0) {
                 for (let p of $config.staticPath) {
-                    if(!p)
-                    {
+                    if (!p) {
                         continue;
                     }
                     //let devpath = path.join(__dirname,"../../src/"+$config.name,p)
@@ -145,7 +144,7 @@ class Application {
         } else {
             if ($config.staticPath.length > 0) {
                 for (let p of $config.staticPath) {
-                    if(!p){
+                    if (!p) {
                         continue;
                     }
                     app.use("/static", express.static(p));
@@ -155,8 +154,7 @@ class Application {
         }
 
         // 载入中间件
-        if($Middleware)
-        {
+        if ($Middleware) {
             //app.use($Middleware)
             $Middleware(app)
         }
@@ -169,7 +167,7 @@ class Application {
         // require("./lib/map.core").default(app);
 
         // 注册控制器
-        mapCore(app,$Controllers,$config);
+        mapCore(app, $Controllers, $config);
 
 
         // let build = require("./build.js").default;
@@ -227,14 +225,14 @@ class Application {
         // //app.listen($config.port, $config.host);
         // //console.log("路由权限注册 ",$appRight);
 
-        let msg = <any> "";
+        let msg = <any>"";
         if (isHttps) {
             msg = ` 启动信息： 协议:[https]  绑定的IP[${host}]  监听端口 [${port}] 启动模式[${$config.debug == 1 ? 'Debug' : 'Release'}] `
         }
         else {
             msg = `启动信息： 协议:[http]  绑定的IP[${host}]  监听端口 [${port}] 启动模式[${$config.debug == 1 ? 'Debug' : 'Release'}] `
         }
-        console.log( msg.cyan);
+        console.log(msg.cyan);
 
         app.use((req, res, next) => {
             if ($config.notFound) {
@@ -279,17 +277,17 @@ const ModelInject = () => { }
 /**
  * 中间件 注入(req:any,res:any,next:any)=>{}
  */
-const MiddlewareInject = (func:any) => {
+const MiddlewareInject = (func: any) => {
     return function (target: any) {
         target.prototype.$Meta = target.prototype.$Meta ? target.prototype.$Meta : {}
         target.prototype.$Meta.$Middleware = func;
     }
- }
+}
 
 /**
  * 实体模型注入
  */
-const EntityInject = (Entitys:Entity[]) => {
+const EntityInject = (Entitys: Entity[]) => {
     return function (target: any) {
         target.prototype.$Meta = target.prototype.$Meta ? target.prototype.$Meta : {}
         target.prototype.$Meta.$Entitys = Entitys;
@@ -327,6 +325,17 @@ const FunctionInject = () => { }
  */
 const ModuleInject = () => { }
 
+
+/**
+ * 全局钩子
+ */
+const BeforeResponse = () => {
+    return function (target, methodName: string, descriptor: PropertyDescriptor) {
+        !target.$Meta && (target.$Meta = {});
+        target.$Meta.$BeforeResponse = target[methodName];
+    }
+
+}
 export {
     Application,
     ControllerInject,
@@ -337,6 +346,7 @@ export {
     ValidateInject,
     FunctionInject,
     ModuleInject,
-    Boot
+    Boot,
+    BeforeResponse,
 }
 
