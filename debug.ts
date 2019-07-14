@@ -18,6 +18,7 @@ const translateCompilePath = () => {
         let tpath = path1.replace(/\\/g,'/')
         //console.log(tpath);
         let extname = path.extname(path1);
+        let fileName = path.basename(path1,'.js')
         if(extname != '.js' || (tpath.indexOf("/core/debug.js") != -1) )
         {
             return;
@@ -59,7 +60,7 @@ const translateCompilePath = () => {
                             if(err){
                                 return console.log('写文件操作失败',err,fullpath);
                             } 
-                            let msg:any = ` ${ utils.dateFormate(new Date(),"hh:mm:ss") } 编译结果写文件成功 `;
+                            let msg:any = ` ${ utils.dateFormate(new Date(),"hh:mm:ss") } 编译 ${fileName}.ts`;
                             console.log(msg.cyan);
                             pathMap.set(fullpath,new Date().getTime())
                         });

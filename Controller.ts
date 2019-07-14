@@ -297,6 +297,7 @@ class Controller extends OriginClass {
     public action: string;// 当前请求的action
     public currentUrl: string;// 当前请求的url地址
     protected $Meta: any;
+    private $App:any;// 全局应用对象
 
     protected assignData: {};// 控制器从浏览器输出的数据
 
@@ -312,6 +313,22 @@ class Controller extends OriginClass {
         this.isPut = false;
         this.isDelete = false;
 
+    }
+
+
+
+    /**
+     * 设置应用对象
+     * @param App 全局应用对象
+     */
+    public set App(App)
+    {
+        this.$App = App;
+    }
+
+    public get App()
+    {
+        return this.$App;
     }
 
     // 初始化方法
@@ -429,75 +446,44 @@ class Controller extends OriginClass {
         }
     }
 
-
-    // 数据输出
-    async success(data) {
-        try {
-            let url = this.getActionUrl();
-            let restraint = null;
-            if (this.isGet) {
-                if (this.$Meta && this.$Meta.GetRestraint) {
-                    restraint = this.$Meta.GetRestraint.get(this.action)
-                }
-
-            }
-            if (this.isPost) {
-                if (this.$Meta && this.$Meta.PostRestraint) {
-                    restraint = this.$Meta.PostRestraint.get(this.action)
-                }
-            }
-            if (restraint && restraint.output) {
-                if (isEmptyObject(restraint.output)) {
-                    if (!isEmptyObject(data)) {
-                        throw new Error("定了空对象的输出格式，但是输出内容并不是空对象");
-                    }
-                }
-                if (!$common.compareDataType(data, restraint.output)) {
-                    throw new Error(`接口：${url}  输出时,期望的数据和真实输出的数据数据类型不相同`)
-                }
-                if (isArray(data)) {
-                    for (let d of data) {
-                        await $common.inputChecker(d, restraint.output)
-                    }
-                }
-                else if (isObject(data)) {
-                    await $common.inputChecker(data, restraint.output)
-                }
-                else if (data === false) {
-                    return this.res.ok(data);
-                }
-                else {
-                    throw new Error("输出的内容只支持对象或者数组");
-                }
-
-            }
-            else {
-                //如果不设定 输出的格式，但是还有输出，那么将会报错
-                if (data) {
-                    throw new Error("本接口未定义输出数据格式，无法输出数据");
-                }
-            }
-            this.res.ok(data);
-        }
-        catch (err) {
-            err.message += ",接口数据输出发生异常，接口：" + this.getActionUrl();
-            throw err;
-        }
-    }
-
-    // 数据输出
-    async text(data) {
-        this.res['out'](data);
-    }
-
     // 重定向
     rego(url: string, code?: any, data?: object) {
-        this.res.rego(url, code, data);
+        return {
+            _REDIRECT_:true,
+            code:code,
+            url:url,
+            data:data,
+        }
     }
 
     // 重定向
-    redirect(url: string, code?: any) {
-        this.res.rego(url, code);
+    redirect(url: string, code?: any,data?:object) {
+        //this.res.rego(url, code);
+        return {
+            _REDIRECT_:true,
+            code:code,
+            url:url,
+            data:data,
+        }
+    }
+
+
+    // 下载数据
+    download(filepath:string,filename?:string)
+    {
+        if(!filepath || !filename)
+        {
+            throw new Error("filepath or filename is empty");
+        }
+        if(!fs.existsSync(filepath))
+        {
+            throw new Error(`${filepath} 文件不存在`);
+        }
+        return  {
+            _DOWNLOAD_:true,
+            filepath:filepath,
+            filename:filename
+        }
     }
 
     // 错误输出

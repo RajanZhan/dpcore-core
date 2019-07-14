@@ -1,7 +1,7 @@
 
-module.exports = async (req, res, next) => {
+export default async (req, res, next) => {
     //console.log("before redis in session");
-    if($config.redis.use != "1") 
+    if(!$config.redis ||  $config.redis.use != "1") 
     {
         let msg:any = "redis未启用，session 功能将无法使用,请禁用session或者启用redis"
         console.log(msg.blue);

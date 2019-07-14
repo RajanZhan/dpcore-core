@@ -7,7 +7,7 @@ import utils from "@dpCore/lib/utils"
 const { isArray, isString, isObject, isEmptyObject } = utils.getType()
 const inputChecker1 = utils.inputChecker1;// 数据合法性校验方法
 
-export default (app, controller, $config) => {
+export default (app, controller, $config,application) => {
     if (!controller) {
         console.log("未注册任何控制器...");
         return;
@@ -15,6 +15,12 @@ export default (app, controller, $config) => {
     // 统一输出处理
     const dealOutput = async (result, res, cntl) => {
         try {
+            var url = cntl.getActionUrl();
+            if(!result || result == undefined || result == "undefined")
+            {
+                throw new Error(`接口 ${url} 接口异常，无法输出undefined数据`);
+            }
+            
             if (result._TEMPLATE_) // 说明模板输出
             {
                 if (!result.template || !result.data) {
@@ -22,15 +28,31 @@ export default (app, controller, $config) => {
                 }
                 res.render(result.template, result.data)
             }
+            else if(result._DOWNLOAD_)
+            {
+                res.download(result.filepath,result.filename);
+            }
+            else if (result._REDIRECT_)
+            {
+                return res.rego(result.url, result.code, result.data);
+            }
+
             else // 普通的输出
             {
-                // 这里需要做数据输入的校验
 
+                let beforeResponse = async (result) => {
+                    if (application.$Meta && application.$Meta.$BeforeResponse) {
+                        result = await application.$Meta.$BeforeResponse(result);
+                    }
+                    return result;
+                }
+
+                // 这里需要做数据输入的校验
 
                 if (result === false) {
                     return res.send(result)
                 }
-                let url = cntl.getActionUrl();
+                
                 let restraint = null;
                 if (cntl.isGet) {
                     if (cntl.$Meta && cntl.$Meta.GetRestraint) {
@@ -63,12 +85,13 @@ export default (app, controller, $config) => {
                         }
                         // 校验数据合法性
                         await inputChecker1({ result: result }, { result: restraint.output });
-                        return res.send(result)
+                        //return res.send(result)
                     }
                     else if (isObject(result)) {
                         await $common.inputChecker(result, restraint.output)
                     }
                     else if (result === false) {
+                        result = await beforeResponse(result);
                         return res.send(result);
                     }
                     else {
@@ -82,6 +105,8 @@ export default (app, controller, $config) => {
                         throw new Error("本接口未定义输出数据格式，无法输出数据");
                     }
                 }
+
+                result = await beforeResponse(result);
                 res.send(result)
             }
 
@@ -133,7 +158,9 @@ export default (app, controller, $config) => {
         if (!cls) {
             throw new Error(`控制器类不存在 ${key}`)
         }
-        return <any>new cls;
+        let instance =  <any>new cls;
+        instance.App = application;
+        return instance;
         //return ControllerInstance.get(key);
     }
     //console.log("控制器注册",controller);

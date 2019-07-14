@@ -1,5 +1,4 @@
 {
-
   "dependencies": {
     "art-template": "^3.0.3",
     "axios": "^0.18.0",
@@ -18,6 +17,7 @@
     "qr-image": "^3.2.0",
     "rajan_zhan-datamodel": "^1.0.10",
     "redis": "^2.8.0",
+    "sequelize": "^5.10.0",
     "sha256": "^0.2.0",
     "sofa-rpc-node": "^1.6.0",
     "svg-captcha": "^1.3.11",
@@ -29,7 +29,6 @@
     "xmlreader": "^0.2.3"
   },
   "devDependencies": {
-    "chokidar": "^3.0.1",
     "babel-core": "6.26.0",
     "babel-loader": "7.1.2",
     "babel-plugin-transform-runtime": "6.23.0",

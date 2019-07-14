@@ -242,23 +242,26 @@ interface Config {
         zkHost: string,
         isUse: boolean,
     },
+    session?:number,//是否启用session
     cookie?: {
-        expire: string,
+        expire: number,// cookie的过期时间，默认是1200秒，单位秒
     },
     db?: {
         db: string,
+        use:number,//1 为已启用 0 为未启用
         host: string,
         uname: string,
         pwd: string,
+        type?:string,// 数据库类型，目前支持mysql，
         updateField: boolean,
         port: number,
         logging: boolean,//
     },
     redis?: {
-        use: string,
+        use: number,
         host: string,
         port: number,
-        pass: string
+        pass?: string
     }
     viewPath?: string,// 模板引擎的路径
     staticPath?:string[],// 静态文件的路径 

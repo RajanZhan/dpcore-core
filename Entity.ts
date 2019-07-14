@@ -1,5 +1,14 @@
 class Entity {
 
+    //  constructor()
+    // {
+
+    // }
+
+    // public static getInstance():Entity
+    // {
+    //     return new Entity()
+    // }
 }
 
 /**
@@ -30,46 +39,84 @@ const Name = (name: string) => {
  * @param rule 关联规则
  */
 interface relation {
-    name:string,// 关联的模型名
-    type:string,// 关联类型 1v1,nvn,1vn,nv1 
+    entityName:string,// 关联的模型名
+    type:string,// 关联类型 1v1,nvn,1vn 
     targetKey:string,// 目标键
     foreignKey:string,// 外键
+    as:string,// 挂载的对象
+    through?:string,// 多对多时的中间模型
 }
 const Relation = (relations:relation[]) => {
     return function (target: any) {
         target.prototype.$Meta = target.prototype.$Meta ? target.prototype.$Meta : {}
-        target.prototype.$Meta.$EntityName = relations;
+        target.prototype.$Meta.$Relations = relations;
     }
 }
-
 
 /**
  * 设置列名
  * @param 
  */
 enum DataType {
-    int,
     string,
+    stirngBinary,
+    text,
+    textTiny,
+    int,
+    bigint,
+    float,
+    real,// 只支持 PostgreSQL
+    double,
+    decimal,
+    date,
+    dateOnly,
+    boolean,
+    enum,
+    json,// 只支持 PostgreSQL
+    jsonb,// 只支持 PostgreSQL
+    blob,
+    blobTiny,
+    uuid,
 }
 interface column {
     dataType:DataType,// 数据类型,
     allowNull?:boolean,
     defaultValue?:any,
     primaryKey?:boolean,
-    length?:number,
+    length?:number|number[],
     alias?:string,// 别名
     index?:string,// 索引
 }
  const Colunm = (columnInfo:column ) => {
-    // return function (target: any) {
-    //     target.prototype.$Meta = target.prototype.$Meta ? target.prototype.$Meta : {}
-    //     target.prototype.$Meta.$EntityName = name;
-    // }
     return function (target: any, propertyName: string) {
         //target[propertyName] = value;
         target.$Meta = target.$Meta ? target.$Meta : {}
         target.$Meta.$column = target.$Meta.$column ? target.$Meta.$column : {}
         target.$Meta.$column[propertyName] = columnInfo;
+    }
+}
+
+/**
+ * 普通索引
+ */
+const Index = () => {
+    return function (target: any, propertyName: string) {
+        target.$Meta = target.$Meta ? target.$Meta : {}
+        target.$Meta.$index = target.$Meta.$index ? target.$Meta.$index : []
+        target.$Meta.$index.push(propertyName)
+
+    }
+}
+
+
+/**
+ * 全文索引
+ */
+const FullTextIndex = () => {
+    return function (target: any, propertyName: string) {
+        target.$Meta = target.$Meta ? target.$Meta : {}
+        target.$Meta.$fullTextIndex = target.$Meta.$fullTextIndex ? target.$Meta.$fullTextIndex : []
+        target.$Meta.$fullTextIndex.push(propertyName)
     }
 }
 
@@ -82,4 +129,6 @@ export {
     Colunm,
     DataType,
     Relation,
+    Index,
+    FullTextIndex
 }

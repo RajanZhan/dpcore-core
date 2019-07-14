@@ -11,7 +11,11 @@ const express = require('express');
 const app = express();
 const path = require("path");
 import mapCore from "./lib/map.core"
-
+import dbiniter from "./lib/db.core" // 数据库初始化器
+import { Model } from "./Model";
+import ModelRegister from "./lib/ModelRegister"
+import session from "./lib/session"
+import cache from "./lib/cache"
 
 interface runConfig {
     port: number,// 启动的端口
@@ -22,6 +26,14 @@ interface runConfig {
     }
 }
 
+/**
+ * 系统默认配置
+ */
+const defaultConfig = {
+    cookie: {
+        expire: 1200,
+    }
+}
 
 class Application {
 
@@ -43,13 +55,19 @@ class Application {
                 $Controllers: Controller | Controller[],
                 $Middleware: (app: { use: any }) => {},
                 $Validate: object,
+                $Entitys: Entity[],
+                $Models: Model[],
             }
         }
+        
         var instance: AppInstance = <any>this;
-        const $config = instance.$Meta.$config;
+        var $config = instance.$Meta.$config;
         const $Middleware = instance.$Meta.$Middleware;
         const $Controllers = instance.$Meta.$Controllers;
         const $Validate = instance.$Meta.$Validate;
+        const $Entitys = instance.$Meta.$Entitys;
+        const $Models = instance.$Meta.$Models;
+        $config = {...defaultConfig,...$config }
         // console.log($config, "应用启动")
         // return;
         const colors = require("colors");
@@ -78,6 +96,7 @@ class Application {
         global['$Validate'] = $Validate;
         const $dataChecker = require("./lib/validate.core.v1").default
         global['$dataChecker'] = $dataChecker;
+        global['$cache'] = await cache();
 
         if ($config.cross == 1) {
             app.use((req, res, next) => {
@@ -105,7 +124,8 @@ class Application {
         // app.use(require("./lib/session"));
         if ($config.session) {
             //启动session
-            app.use(require("./lib/session"));
+            //app.use(require("./lib/session"));
+            app.use(session);
             //console.log("启用session");
         }
         // 挂载response扩展方法
@@ -167,7 +187,11 @@ class Application {
         // require("./lib/map.core").default(app);
 
         // 注册控制器
-        mapCore(app, $Controllers, $config);
+        mapCore(app, $Controllers, $config,this);
+
+        // 实例化数据库
+        const db = await dbiniter($config.db, $Entitys);
+        regGlobal("$db", db)
 
 
         // let build = require("./build.js").default;
@@ -178,7 +202,7 @@ class Application {
         // require("./lib/LogicRegister").default();
 
         // // 注册model
-        // require("./lib/ModelRegister").default();
+        ModelRegister($Models,this);
 
         // // 注册微服务
         // if ($config && $config.msServer && $config.msServer.isUse) {
@@ -217,6 +241,7 @@ class Application {
         else {
             server = http.createServer(app).listen(port, host);
         }
+
 
         // // var io = require('socket.io')(server);
         // await require("./common/start").default(app, server);
@@ -271,7 +296,12 @@ const ControllerInject = (ctrl: any[]) => {
 /**
  * model 注册器
  */
-const ModelInject = () => { }
+const ModelInject = (models:any[]) => {
+    return function (target: any) {
+        target.prototype.$Meta = target.prototype.$Meta ? target.prototype.$Meta : {}
+        target.prototype.$Meta.$Models = models;
+    }
+}
 
 
 /**
