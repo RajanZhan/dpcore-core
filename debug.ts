@@ -116,7 +116,7 @@ const autoTsc = ()=>{
             // }, 1000*1);
 
             autoTsc();
-        }, 1000 * 60 * 5);
+        }, 1000 * 60 * 2);
         console.log("typescript 自动编译监听中...");
 }
 translateCompilePath();
