@@ -5,6 +5,10 @@ import utils from "./utils";
 var Models = new Map();
 export default (models:Model[],application) => {
 
+    if(!models || models.length == 0)
+    {
+        return console.log("未注册任何model");
+    }
     for(let m of models)
     {
         Models.set(m['name'],m);

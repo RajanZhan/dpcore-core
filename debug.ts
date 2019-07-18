@@ -39,19 +39,15 @@ const translateCompilePath = () => {
                     //console.log("太靠近了");
                     return ;
                 }
-                //console.log("太靠近了");
+                
                
             }
            
         }
-        //let basename = path.basename(path1);
-        //let fullpath = path.join(__dirname, "../", path1.replace(".ts", '.js'))
         
-        //console.log(fullpath);
-
         if (fs.existsSync(fullpath)) {
             setTimeout(() => {
-                let corePath = path.join(__dirname, "../core");
+                let corePath = path.join(__dirname, "../dpcore-core");
                 let codeContent = fs.readFileSync(fullpath).toString().replace(/@dpCore/g, corePath.replace(/\\/g, '/')) ;
                 if (codeContent) {
                     //console.log("替换文件 ",new Date().getSeconds(), fullpath)
@@ -107,13 +103,7 @@ const autoTsc = ()=>{
             nodecmd.get(tsProcessKill,()=>{
                 console.log("编译进程重启...")
             })
-            // setTimeout(() => {
-            //     process.send({
-            //         code: "restart",
-            //         data: 'autoTsc'
-            //     })
-            //     process.exit();
-            // }, 1000*1);
+           
 
             autoTsc();
         }, 1000 * 60 * 2);

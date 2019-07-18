@@ -4,7 +4,7 @@ function getKey (key)
 }
 export default  async ()=> {
 
-    if($config['redis']['use'] != '1') 
+    if(!$config || !$config['redis'] || $config['redis']['use'] != '1') 
     {
         console.log("redis未启用");
         return {}
