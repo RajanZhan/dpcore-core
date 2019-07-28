@@ -7,7 +7,7 @@ import utils from "@dpCore/lib/utils"
 const { isArray, isString, isObject, isEmptyObject } = utils.getType()
 const inputChecker1 = utils.inputChecker1;// 数据合法性校验方法
 
-export default (app, controller, $config,application) => {
+export default (app, controller, $config, application) => {
     if (!controller) {
         console.log("未注册任何控制器...");
         return;
@@ -16,11 +16,10 @@ export default (app, controller, $config,application) => {
     const dealOutput = async (result, res, cntl) => {
         try {
             var url = cntl.getActionUrl();
-            if(!result || result == undefined || result == "undefined")
-            {
+            if (!result || result == undefined || result == "undefined") {
                 throw new Error(`接口 ${url} 接口异常，无法输出undefined数据`);
             }
-            
+
             if (result._TEMPLATE_) // 说明模板输出
             {
                 if (!result.template || !result.data) {
@@ -28,12 +27,10 @@ export default (app, controller, $config,application) => {
                 }
                 res.render(result.template, result.data)
             }
-            else if(result._DOWNLOAD_)
-            {
-                res.download(result.filepath,result.filename);
+            else if (result._DOWNLOAD_) {
+                res.download(result.filepath, result.filename);
             }
-            else if (result._REDIRECT_)
-            {
+            else if (result._REDIRECT_) {
                 return res.rego(result.url, result.code, result.data);
             }
 
@@ -52,7 +49,7 @@ export default (app, controller, $config,application) => {
                 if (result === false) {
                     return res.send(result)
                 }
-                
+
                 let restraint = null;
                 if (cntl.isGet) {
                     if (cntl.$Meta && cntl.$Meta.GetRestraint) {
@@ -76,7 +73,7 @@ export default (app, controller, $config,application) => {
                     }
                     if (isArray(result)) {
                         for (let d of result) {
-                            await $common.inputChecker(d, restraint.output)
+                            await inputChecker1(d, restraint.output)
                         }
                     }
                     else if (isString(result)) {
@@ -88,7 +85,7 @@ export default (app, controller, $config,application) => {
                         //return res.send(result)
                     }
                     else if (isObject(result)) {
-                        await $common.inputChecker(result, restraint.output)
+                        await inputChecker1(result, restraint.output)
                     }
                     else if (result === false) {
                         result = await beforeResponse(result);
@@ -101,9 +98,9 @@ export default (app, controller, $config,application) => {
                 }
                 else {
                     //如果不设定 输出的格式，但是还有输出，那么将会报错
-                    if (result) {
-                        throw new Error("本接口未定义输出数据格式，无法输出数据");
-                    }
+                    // if (result) {
+                    //     throw new Error("本接口未定义输出数据格式，无法输出数据");
+                    // }
                 }
 
                 result = await beforeResponse(result);
@@ -113,10 +110,10 @@ export default (app, controller, $config,application) => {
         }
         catch (err) {
             err.message += ",接口数据输出发生异常，接口：" + cntl.getActionUrl();
-            //throw err;
-            res.status(500)
-            console.error(err)
-            res.send(err.message)
+            throw err;
+            // res.status(500)
+            // console.error(err)
+            // res.send(err.message)
         }
     }
     var inputChecker = $common.inputChecker1;
@@ -128,13 +125,13 @@ export default (app, controller, $config,application) => {
                     throw new Error("接口注解中，输入参数校验对象input只支持query 和 body 属性");
                 }
                 if (restraint.input.query) {
-                    req.query = await inputChecker(req.query, restraint.input.query)
+                    req.query = await inputChecker1(req.query, restraint.input.query)
                 }
                 else {
                     req.query = {}
                 }
                 if (restraint.input.body) {
-                    req.body = await inputChecker(req.body, restraint.input.body)
+                    req.body = await inputChecker1(req.body, restraint.input.body)
                 }
                 else {
                     req.body = {}
@@ -158,7 +155,7 @@ export default (app, controller, $config,application) => {
         if (!cls) {
             throw new Error(`控制器类不存在 ${key}`)
         }
-        let instance =  <any>new cls;
+        let instance = <any>new cls;
         instance.App = application;
         return instance;
         //return ControllerInstance.get(key);
@@ -232,6 +229,9 @@ export default (app, controller, $config,application) => {
                     contrl.setRes(res)
                     contrl.reset()
                     //console.log(cntl.$Meta)
+                    contrl.setReq(req);
+                    contrl.setMethod(req);
+                    contrl.setAction(tmpi);
                     try {
                         // 校验输入的参数
                         let restraint = null;
@@ -239,13 +239,21 @@ export default (app, controller, $config,application) => {
                             restraint = contrl.$Meta.GetRestraint.get(i);
                             contrl = await validateInput(contrl, restraint, req)
                         }
-                        contrl.setReq(req);
-                        contrl.setMethod(req);
-                        contrl.setAction(tmpi);
+
                         if (contrl['_init'] && (!restraint || !restraint.isolation)) {
                             let initResult = await contrl['_init'](i);
-                            if (!initResult) {
-                                return;
+                            if (initResult === false) {
+                                return res.send(`请求接口${url}被中断`)
+                            }
+                            if (isArray(initResult)) {
+                                if (initResult[0] === false) {
+                                    if (initResult[1]) {
+                                        return res.send(`请求接口${url}被中断,中断原因:${initResult[1]}`)
+                                    }
+                                    else {
+                                        return res.send(`请求接口${url}被中断`)
+                                    }
+                                }
                             }
                         }
                         let func = contrl[i];
@@ -265,10 +273,10 @@ export default (app, controller, $config,application) => {
                             if (contrl.$Meta && contrl.$Meta.Exception) {
                                 let func = contrl[contrl.$Meta.Exception];
                                 if (func) {
-                                    return await func.call(contrl, { actionName: actionName, methods: 'GET', error: err })
+                                    return res.send(await func.call(contrl, err));
                                 }
                             }
-                            contrl.error(err)
+                            res.send(`接口请求异常 ${url},${err.message}`);
                         }
                         catch (err_in_cache) {
                             let err = {
@@ -279,6 +287,7 @@ export default (app, controller, $config,application) => {
                             $logger.error(err);
                             console.error(err);
                         }
+
                     }
 
                 })
@@ -323,6 +332,9 @@ export default (app, controller, $config,application) => {
                     let contrl = getControllerInstance(map)
                     contrl.reset()
                     contrl.setRes(res)
+                    contrl.setReq(req);
+                    contrl.setMethod(req);
+                    contrl.setAction(tmpi)
                     try {
 
                         // 校验输入的参数
@@ -331,9 +343,7 @@ export default (app, controller, $config,application) => {
                             restraint = contrl.$Meta.PostRestraint.get(i);
                             contrl = await validateInput(contrl, restraint, req)
                         }
-                        contrl.setReq(req);
-                        contrl.setMethod(req);
-                        contrl.setAction(tmpi)
+
                         if (contrl['_init'] && (!restraint || !restraint.isolation)) {
                             let initResult = await contrl['_init'](i);
                             if (!initResult) {
@@ -358,10 +368,10 @@ export default (app, controller, $config,application) => {
                             if (contrl.$Meta && contrl.$Meta.Exception) {
                                 let func = contrl[contrl.$Meta.Exception];
                                 if (func) {
-                                    return await func.call(contrl, { actionName: actionName, methods: 'Post', error: err })
+                                    return res.send(await func.call(contrl, err));
                                 }
                             }
-                            contrl.error(err)
+                            res.send(`接口请求异常 ${url},${err.message}`);
                         }
                         catch (err_in_cache) {
                             let err = {
@@ -419,6 +429,9 @@ export default (app, controller, $config,application) => {
                     let contrl = getControllerInstance(map)
                     contrl.setRes(res)
                     contrl.reset()
+                    contrl.setReq(req);
+                    contrl.setMethod(req);
+                    contrl.setAction(tmpi)
                     try {
 
                         // 校验输入的参数
@@ -427,9 +440,7 @@ export default (app, controller, $config,application) => {
                             restraint = contrl.$Meta.PutRestraint.get(i);
                             contrl = await validateInput(contrl, restraint, req)
                         }
-                        contrl.setReq(req);
-                        contrl.setMethod(req);
-                        contrl.setAction(tmpi)
+
 
                         if (contrl['_init'] && (!restraint || !restraint.isolation)) {
                             let initResult = await contrl['_init'](i);
@@ -454,10 +465,10 @@ export default (app, controller, $config,application) => {
                             if (contrl.$Meta && contrl.$Meta.Exception) {
                                 let func = contrl[contrl.$Meta.Exception];
                                 if (func) {
-                                    return await func.call(contrl, { actionName: actionName, methods: 'PUT', error: err })
+                                    return res.send(await func.call(contrl, err));
                                 }
                             }
-                            contrl.error(err)
+                            res.send(`接口请求异常 ${url},${err.message}`);
                         }
                         catch (err_in_cache) {
                             let err = {
@@ -510,6 +521,9 @@ export default (app, controller, $config,application) => {
                     let contrl = getControllerInstance(map)
                     contrl.setRes(res)
                     contrl.reset()
+                    contrl.setReq(req);
+                    contrl.setMethod(req);
+                    contrl.setAction(tmpi)
                     try {
                         // 校验输入的参数
                         // let restraint = contrl.$Meta.DeleteRestraint.get(i);
@@ -519,9 +533,7 @@ export default (app, controller, $config,application) => {
                             restraint = contrl.$Meta.DeleteRestraint.get(i);
                             contrl = await validateInput(contrl, restraint, req)
                         }
-                        contrl.setReq(req);
-                        contrl.setMethod(req);
-                        contrl.setAction(tmpi)
+
                         if (contrl['_init'] && (!restraint || !restraint.isolation)) {
                             let initResult = await contrl['_init'](i);
                             if (!initResult) {
@@ -545,10 +557,10 @@ export default (app, controller, $config,application) => {
                             if (contrl.$Meta && contrl.$Meta.Exception) {
                                 let func = contrl[contrl.$Meta.Exception];
                                 if (func) {
-                                    return await func.call(contrl, { actionName: actionName, methods: 'Delete', error: err })
+                                    return res.send(await func.call(contrl, err));
                                 }
                             }
-                            contrl.error(err)
+                            res.send(`接口请求异常 ${url},${err.message}`);
                         }
                         catch (err_in_cache) {
                             let err = {
@@ -603,6 +615,9 @@ export default (app, controller, $config,application) => {
                     let contrl = getControllerInstance(map)
                     contrl.setRes(res)
                     contrl.reset()
+                    contrl.setReq(req);
+                    contrl.setMethod(req);
+                    contrl.setAction(tmpi)
                     try {
                         // 校验输入的参数
                         let restraint = null
@@ -610,9 +625,7 @@ export default (app, controller, $config,application) => {
                             restraint = contrl.$Meta.AllRestraint.get(i);
                             contrl = await validateInput(contrl, restraint, req)
                         }
-                        contrl.setReq(req);
-                        contrl.setMethod(req);
-                        contrl.setAction(tmpi)
+                       
                         if (contrl['_init'] && (!restraint || !restraint.isolation)) {
                             let initResult = await contrl['_init'](i);
                             if (!initResult) {
@@ -636,10 +649,10 @@ export default (app, controller, $config,application) => {
                             if (contrl.$Meta && contrl.$Meta.Exception) {
                                 let func = contrl[contrl.$Meta.Exception];
                                 if (func) {
-                                    return await func.call(contrl, { actionName: actionName, methods: 'All', error: err })
+                                    return res.send(await func.call(contrl, err));
                                 }
                             }
-                            contrl.error(err)
+                            res.send(`接口请求异常 ${url},${err.message}`);
                         }
                         catch (err_in_cache) {
                             let err = {

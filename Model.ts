@@ -9,6 +9,22 @@ interface transaction {
     rollback: () => {}
 }
 
+//关联查询对象
+interface includeObj {
+    as: string,
+    modelName: string,
+    where?:
+    {
+        [key: string]: any;
+        exclude?: string[],//忽略哪些字段
+    } | any,
+
+    $fields?: {
+        [key: string]: any;
+        exclude?: string[],//忽略哪些字段
+    } | any,
+    [key: string]: any;
+}
 
 // 读数据 基础的查询参数的
 interface readBaseParam {
@@ -18,7 +34,7 @@ interface readBaseParam {
         [key: string]: any;
         exclude?: string[],//忽略哪些字段
     } | any,
-    include?: any,
+    include?: includeObj | includeObj[],
     $cache?: {
         time: number,
         key: string
@@ -596,7 +612,7 @@ class Model extends OriginClass {
                 return data
             }
             let rtvMap = <any>$realFieldToVfieldMap.get(dataModelName);
-            if ($common.isArray(data)) {
+            if (isArray(data)) {
                 let res = []
                 for (let d of data) {
                     if (d) {

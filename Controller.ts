@@ -332,7 +332,7 @@ class Controller extends OriginClass {
     }
 
     // 初始化方法
-    protected async _init(action: string): Promise<boolean> {
+    protected async _init(action: string): Promise<boolean | [boolean,string?]> {
         return true;
     }
     // 读取基础路由
@@ -345,7 +345,7 @@ class Controller extends OriginClass {
         if (action) {
             return path.join(this.getRouter(), action).replace(/\\/g, '/')
         }
-        return path.join(this.getRouter(), this.action).replace(/\\/g, '/')
+        return path.join(this.getRouter(), this.action?this.action:"").replace(/\\/g, '/')
     }
 
     // 修改req的中
@@ -486,17 +486,6 @@ class Controller extends OriginClass {
         }
     }
 
-    // 错误输出
-    error(err) {
-
-        if ($config.debug == 1) {
-            console.error("异常,", err)
-            this.res.error({ message: err.message, stack: err.stack })
-        }
-        else {
-            this.res.error(err.message)
-        }
-    }
 
     // 控制器还原,每个请求的控制还原
     reset() {
@@ -507,11 +496,6 @@ class Controller extends OriginClass {
     }
 
 
-
-    // 终止业务
-    stop(data) {
-        this.res.stop(data);
-    }
 
     /**
      * 处理单文件文件上传

@@ -16,10 +16,10 @@ const translateCompilePath = () => {
 
         
         let tpath = path1.replace(/\\/g,'/')
-        //console.log(tpath);
+       // console.log(tpath,'path ss');
         let extname = path.extname(path1);
         let fileName = path.basename(path1,'.js')
-        if(extname != '.js' || (tpath.indexOf("/core/debug.js") != -1) )
+        if(extname != '.js' || (tpath.indexOf("/dpcore-core/debug.js") != -1) )
         {
             return;
         }

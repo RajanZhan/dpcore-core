@@ -28,7 +28,7 @@ export default (models:Model[],application) => {
         }
         let modelClass = Models.get(arr[0]);
         if (!modelClass) {
-            throw new Error(`${arr[0]} 可能不存在`);
+            throw new Error(`${arr[0]} model 可能不存在`);
         }
         let lg = new modelClass({});//model.get(`${arr[0]}.Model`);
         lg.App = application;

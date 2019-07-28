@@ -377,7 +377,7 @@ export default async (dbconfig: Config["db"], entitys: Entity[]) => {
                             // 一对多
                             case "1vn":
                                 // 说明外键存在于目标模型
-                                if (fkeyEntityArr[0] == entity['prototype']['$Meta']['$EntityName']) {
+                                if (targetKeyArr[0] != relation.entityName ) {
                                     throw new Error(`实体${entity['prototype']['$Meta']['$EntityName']} 的第${i}个模型关联存在问题，1对多关联中，外键必须存在于目标模型 `);
                                 }
                                 else {
@@ -390,6 +390,23 @@ export default async (dbconfig: Config["db"], entitys: Entity[]) => {
                                     })
                                 }
                                 break;
+
+                            // 多对1
+                            case "nv1":
+
+                                if (fkeyEntityArr[0] != entity['prototype']['$Meta']['$EntityName']) {
+                                    throw new Error(`实体${entity['prototype']['$Meta']['$EntityName']} 模型关联存在问题，多对1关联中，外键必须存在于源模型 `);
+                                }
+                                // 说明外键存在于原模型
+                                dbobj.relation.push({
+                                    model: relation.entityName,
+                                    as: relation.as,
+                                    targetKey: targetKeyArr[1],
+                                    foreignKey: fkeyEntityArr[1],
+                                    type: "belongsTo"
+                                })
+                                break;
+
 
                             // 多对多
                             case "nvn":
@@ -407,6 +424,7 @@ export default async (dbconfig: Config["db"], entitys: Entity[]) => {
                                     type: "belongsToMany"
                                 })
                                 break;
+
                         }
                     }
                 }

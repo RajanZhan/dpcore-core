@@ -47,17 +47,17 @@ declare var $common: {
      * @param   reverse 是否倒序（默认为false）
      * @return  array  返回排序后的json数组
      */
-    jsonSort: (array: any[], field: string, reverse: boolean) => { },
+    jsonSort: (array: any[], field: string, reverse: boolean) => {},
 
     /**
      * 生成32位随机字符串 
      */
-    getId:()=>{}
+    getId: () => {}
 
     /**
      * 根据系统的相对路径读取到系统的绝对路径
      */
-    getAbsolutePath:(path:string)=>{},
+    getAbsolutePath: (path: string) => {},
 
 
     /**
@@ -65,27 +65,27 @@ declare var $common: {
      * @return  boolean  返回true 或 false
      *  
      */
-    compareDataType:(a:any,b:any)=>{}
+    compareDataType: (a: any, b: any) => {}
 
     /**
      * 生成md5 加密字符串 
      */
-    md5:(value:string)=>{}
+    md5: (value: string) => {}
 
-     /**
-     * 数组分页
-     * @params {array} arr 目标数据
-     * @params {number} page 读取的页数
-     * @params {number} size 每页的数据
-     */
-    arrayPage:(arr:any[], page:number, size:number)=>{},
+    /**
+    * 数组分页
+    * @params {array} arr 目标数据
+    * @params {number} page 读取的页数
+    * @params {number} size 每页的数据
+    */
+    arrayPage: (arr: any[], page: number, size: number) => {},
 
     /**
      * 生成指定位数的 随机数字
      * @param size 位数
      * @returns {number}. 
      */
-    getRandomNum:(size:number)=>{}
+    getRandomNum: (size: number) => {}
 
 }
 
@@ -242,17 +242,17 @@ interface Config {
         zkHost: string,
         isUse: boolean,
     },
-    session?:number,//是否启用session
+    session?: number,//是否启用session
     cookie?: {
         expire: number,// cookie的过期时间，默认是1200秒，单位秒
     },
     db?: {
         db: string,
-        use:number,//1 为已启用 0 为未启用
+        use: number,//1 为已启用 0 为未启用
         host: string,
         uname: string,
         pwd: string,
-        type?:string,// 数据库类型，目前支持mysql，
+        type?: string,// 数据库类型，目前支持mysql，
         updateField: boolean,
         port: number,
         logging: boolean,//
@@ -264,18 +264,18 @@ interface Config {
         pass?: string
     }
     viewPath?: string,// 模板引擎的路径
-    staticPath?:string[],// 静态文件的路径 
-    https?:{
-        use:number,// 是否启用https 1 为启用， 0 为禁用
-        key:string,// key 文件地址
-        cert:string,// cert 文件地址
+    staticPath?: string[],// 静态文件的路径 
+    https?: {
+        use: number,// 是否启用https 1 为启用， 0 为禁用
+        key: string,// key 文件地址
+        cert: string,// cert 文件地址
     },//https 配置
     host?: string,// 绑定的地址
     port?: number,// 监听的端口
-    notFound?:string,// 404 控制器 ，例如 @Index.index.get
+    notFound?: string,// 404 控制器 ，例如 @Index.index.get
 }
 
-declare var $Validate:any;// 全局数据校验对象
+declare var $Validate: any;// 全局数据校验对象
 
 declare var $appRights: {
     keys: () => {
@@ -350,6 +350,7 @@ declare var $db: {
  */
 declare interface request {
 
+    [key: string]: any;
     query: any,
     body: any,
     rawBody: any,
@@ -446,9 +447,9 @@ declare interface response {
      * @param data query 参数
      * 
      */
-    rego:(url:any,code?:number,data?:object)=>
-    {
-    }
+    rego: (url: any, code?: number, data?: object) =>
+        {
+        }
 
 
     /**
@@ -481,16 +482,16 @@ declare interface response {
 
     }
 
-     /**
-     * 原生输出
-     * @param url 重定向的地址
-     * @param code 301 永久重定向   302 临时重定向
-     * 
-     */
-    output:(httpCode,type,msg)=>
-    {
-        
-    }
+    /**
+    * 原生输出
+    * @param url 重定向的地址
+    * @param code 301 永久重定向   302 临时重定向
+    * 
+    */
+    output: (httpCode, type, msg) =>
+        {
+
+        }
 
     attachment: (value?: any) => {}
 
