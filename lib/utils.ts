@@ -176,6 +176,11 @@ const inputChecker1 = async (input, rules) => {
             let ruleIsObjectiso = isObject(rule);
             let ruleIsArray = isArray(rule);
 
+            if(input[i] === false)
+            {
+                continue;
+            }
+
             // 如果规则是string，现将规则解析成对象
             if (ruleIsString) {
 
@@ -601,6 +606,30 @@ const dateFormate = (date: Date | number, fmt: string): string => {
 
 }
 
+
+
+
+/**
+	 * 将页码转换为数据库分页查询的对象
+	 * @param {number} page - 页数.
+	 * @param {number} psize - 分页的大小.
+	 * @returns {object}. 返回分页查询对象 {limit:xx,offset:xx}
+	 */
+    const getPageForSql = (page, psize)=> {
+        page = page?page:$config.pagination.page;
+        psize = psize?psize:$config.pagination.psize;
+        if ((!page) || (!psize)) throw new Error("getPageForSql，page 或者psize 不能为空");
+        page = parseInt(page);
+        page--;
+        if ((page) < 0) {
+            page = 1
+        }
+        return {
+            limit: parseInt(psize),
+            offset: (parseInt(page)) * parseInt(psize),
+        }
+    }
+
 export default {
 
 
@@ -617,5 +646,6 @@ export default {
     compareDataType,
     getAbsolutePath,
     dateFormate,
+    getPageForSql,
 
 }

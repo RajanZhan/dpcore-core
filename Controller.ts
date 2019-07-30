@@ -165,6 +165,12 @@ const Put = (path?: actionPathObj | string) => {
     return function (target, methodName: string, descriptor: PropertyDescriptor) {
         !target.$Meta && (target.$Meta = {});
 
+
+
+        if (!target.$Meta.Put) {
+            target.$Meta.Put = new Map();
+        }
+
         if (isObject(path)) {
             path = <actionPathObj>path;
             let mname = _getPATH(path.path, methodName, 'put');
@@ -181,18 +187,13 @@ const Put = (path?: actionPathObj | string) => {
 
         }
         else {
-
             path = <string>path;
-            if (!target.$Meta.Put) {
-                target.$Meta.Put = new Map();
-            }
-            let mname = _getPATH(path, methodName, 'put');
+            let mname = _getPATH(path, methodName, 'post');
             target.$Meta.Put.set(mname, target[methodName]);
             if (!target.$Meta.PutAction2PathMap) {
                 target.$Meta.PutAction2PathMap = new Map();
             }
-            target.$Meta.PutAction2PathMap.set(methodName, mname);// 缓存控制器名与对应的url地址
-
+            target.$Meta.PutAction2PathMap.set(mname, methodName);// 缓存控制器名与对应的url地址
         }
 
     }
@@ -209,10 +210,15 @@ const Delete = (path?: actionPathObj | string) => {
         !target.$Meta && (target.$Meta = {});
 
 
+
+        if (!target.$Meta.Delete) {
+            target.$Meta.Delete = new Map();
+        }
+
         if (isObject(path)) {
             path = <actionPathObj>path;
-            let mname = _getPATH(path.path, methodName, 'delete');
-            target.$Meta.Delete.set(mname, target[methodName]);
+            let mname = _getPATH(path.path, methodName, 'put');
+            target.$Meta.Put.set(mname, target[methodName]);
             if (!target.$Meta.DeleteRestraint) {
                 target.$Meta.DeleteRestraint = new Map();
             }
@@ -222,19 +228,16 @@ const Delete = (path?: actionPathObj | string) => {
                 target.$Meta.DeleteAction2PathMap = new Map();
             }
             target.$Meta.DeleteAction2PathMap.set(mname, methodName);// 缓存控制器名与对应的url地址
+
         }
         else {
             path = <string>path;
-            if (!target.$Meta.Delete) {
-                target.$Meta.Delete = new Map();
-            }
-            let mname = _getPATH(path, methodName, 'delete');
-            target.$Meta.Delete.set(mname, target[methodName]);
+            let mname = _getPATH(path, methodName, 'post');
+            target.$Meta.Put.set(mname, target[methodName]);
             if (!target.$Meta.DeleteAction2PathMap) {
                 target.$Meta.DeleteAction2PathMap = new Map();
             }
-            target.$Meta.DeleteAction2PathMap.set(methodName, mname);// 缓存控制器名与对应的url地址
-
+            target.$Meta.DeleteAction2PathMap.set(mname, methodName);// 缓存控制器名与对应的url地址
         }
 
     }
