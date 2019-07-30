@@ -176,8 +176,7 @@ const inputChecker1 = async (input, rules) => {
             let ruleIsObjectiso = isObject(rule);
             let ruleIsArray = isArray(rule);
 
-            if(input[i] === false)
-            {
+            if (input[i] === false) {
                 continue;
             }
 
@@ -205,11 +204,16 @@ const inputChecker1 = async (input, rules) => {
                         throw new Error(`参数${i}为必填参数，请传入参数`);
                     }
                 }
+
                 /**
                  * 传入的数据只能是对象或者对象数组
                  */
                 if (!isArray(input[i]) && !isObject(input[i])) {
-                    throw new Error(`字段${i}期望的数据数组或者对象数组，但传入的数据都不符合`);
+
+                    // 这里处理 查询的结果为空数组的情况
+                    if (!isArray(rules[i])) {
+                        throw new Error(`字段${i}期望的数据数组或者对象数组，但传入的数据都不符合`);
+                    }
                 }
                 //如果规则是对象，那么，规则的数据结构一定为{require:<boolean>,attr:{  }},attr为 参数规则，可以递归
                 if (!rule.attr || !isObject(rule.attr)) {
@@ -615,20 +619,20 @@ const dateFormate = (date: Date | number, fmt: string): string => {
 	 * @param {number} psize - 分页的大小.
 	 * @returns {object}. 返回分页查询对象 {limit:xx,offset:xx}
 	 */
-    const getPageForSql = (page, psize)=> {
-        page = page?page:$config.pagination.page;
-        psize = psize?psize:$config.pagination.psize;
-        if ((!page) || (!psize)) throw new Error("getPageForSql，page 或者psize 不能为空");
-        page = parseInt(page);
-        page--;
-        if ((page) < 0) {
-            page = 1
-        }
-        return {
-            limit: parseInt(psize),
-            offset: (parseInt(page)) * parseInt(psize),
-        }
+const getPageForSql = (page, psize) => {
+    page = page ? page : $config.pagination.page;
+    psize = psize ? psize : $config.pagination.psize;
+    if ((!page) || (!psize)) throw new Error("getPageForSql，page 或者psize 不能为空");
+    page = parseInt(page);
+    page--;
+    if ((page) < 0) {
+        page = 1
     }
+    return {
+        limit: parseInt(psize),
+        offset: (parseInt(page)) * parseInt(psize),
+    }
+}
 
 export default {
 
