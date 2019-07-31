@@ -62,6 +62,18 @@ export default (app, controller, $config, application) => {
                         restraint = cntl.$Meta.PostRestraint.get(cntl.action)
                     }
                 }
+                if (cntl.isPut) {
+                    if (cntl.$Meta && cntl.$Meta.PutRestraint) {
+                        restraint = cntl.$Meta.PutRestraint.get(cntl.action)
+                    }
+                }
+
+                if (cntl.isDelete) {
+                    if (cntl.$Meta && cntl.$Meta.DeleteRestraint) {
+                        restraint = cntl.$Meta.DeleteRestraint.get(cntl.action)
+                    }
+                }
+
                 if (restraint && restraint.output) {
                     if (isEmptyObject(restraint.output)) {
                         if (!isEmptyObject(result)) {
@@ -72,9 +84,11 @@ export default (app, controller, $config, application) => {
                         throw new Error(`接口：${url}  输出时,期望的数据和真实输出的数据数据类型不相同`)
                     }
                     if (isArray(result)) {
-                        for (let d of result) {
-                            await inputChecker1(d, restraint.output)
-                        }
+                        // for (let d of result) {
+                        //     await inputChecker1(d, restraint.output)
+                        // }
+                        throw new Error(`接口：${url}  输出时结果为数组，为了接口安全，暂不支持接口直接输出数组，请将数组结果挂载在对象属性上`)
+                        //await inputChecker1(result, restraint.output)
                     }
                     else if (isString(result)) {
                         if (!isString(restraint.output)) {
@@ -266,7 +280,8 @@ export default (app, controller, $config, application) => {
                         let curl = ControllerUrlMap.get(`${map}.${actionName}.get`)
                         contrl.setCurrentUrl(curl);
                         // 处理接口输出
-                        dealOutput(await func.call(contrl), res, contrl);
+                        let result = await func.call(contrl);
+                        await dealOutput(result, res, contrl);
                     }
                     catch (err) {
                         try {
@@ -360,7 +375,7 @@ export default (app, controller, $config, application) => {
 
                         let curl = ControllerUrlMap.get(`${map}.${actionName}.post`)
                         contrl.setCurrentUrl(curl);
-                        dealOutput(await func.call(contrl), res, contrl);
+                        await dealOutput(await func.call(contrl), res, contrl);
 
                     }
                     catch (err) {
@@ -457,7 +472,7 @@ export default (app, controller, $config, application) => {
                         }
                         let curl = ControllerUrlMap.get(`${map}.${actionName}.put`)
                         contrl.setCurrentUrl(curl);
-                        dealOutput(await func.call(contrl), res, contrl);
+                        await dealOutput(await func.call(contrl), res, contrl);
 
                     }
                     catch (err) {
@@ -549,7 +564,7 @@ export default (app, controller, $config, application) => {
                         }
                         let curl = ControllerUrlMap.get(`${map}.${actionName}.delete`)
                         contrl.setCurrentUrl(curl);
-                        dealOutput(await func.call(contrl), res, contrl);
+                        await dealOutput(await func.call(contrl), res, contrl);
 
                     }
                     catch (err) {
@@ -625,7 +640,7 @@ export default (app, controller, $config, application) => {
                             restraint = contrl.$Meta.AllRestraint.get(i);
                             contrl = await validateInput(contrl, restraint, req)
                         }
-                       
+
                         if (contrl['_init'] && (!restraint || !restraint.isolation)) {
                             let initResult = await contrl['_init'](i);
                             if (!initResult) {
@@ -641,7 +656,7 @@ export default (app, controller, $config, application) => {
                         }
                         let curl = ControllerUrlMap.get(`${map}.${actionName}.all`)
                         contrl.setCurrentUrl(curl);
-                        dealOutput(await func.call(contrl), res, contrl);
+                        await dealOutput(await func.call(contrl), res, contrl);
                     }
                     catch (err) {
 

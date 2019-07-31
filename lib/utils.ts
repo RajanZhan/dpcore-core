@@ -111,6 +111,11 @@ const inputChecker1 = async (input, rules) => {
     if (isEmptyObject(input) && isEmptyObject(rules)) {
         return input;
     }
+
+    //如果input 是对象，rules 是数组 可能是因为 input 已经被拆分了
+    if (isObject(input) && isArray(rules) && rules[0] && rules[0].attr) {
+        rules = rules[0].attr
+    }
     // if (!isEmptyObject(rules) && isEmptyObject(input)) {
     //     throw new Error("本接口不接受空参数");
     // }
@@ -159,12 +164,19 @@ const inputChecker1 = async (input, rules) => {
     }
 
 
-
     for (let i in rules) {
         if (!i) {
             continue;
         }
-        map.set(i, rules[i])// 字段和字段的规则做映射
+        if (isArray(rules[i]) && rules[0] && rules[0].attr) {
+            for (let j in rules[0]) {
+                map.set(j, rules[0][j])// 字段和字段的规则做映射
+            }
+        }
+        else {
+            map.set(i, rules[i])// 字段和字段的规则做映射
+        }
+
         let rule = rules[i];
         let checkerObj = {};
         if (rule) {
@@ -198,12 +210,23 @@ const inputChecker1 = async (input, rules) => {
                 if (ruleIsArray) {
                     rule = rule[0]
                 }
+                // else
+                // {
+                //     continue; // 如果数据为数据，输出时数组为空，此时无需验证
+                // }
+
                 // 这个参数为必填参数
                 if (rule.require) {
-                    if (!input[i]) {
+                    //console.log(input[i])
+                    if ((!input[i] || (input[i].length == 0)) && (!isArray(input))) {
                         throw new Error(`参数${i}为必填参数，请传入参数`);
                     }
                 }
+
+                // if(input[i] && isArray(input[i] &&  input[i].length > 0  ))
+                // {
+                //     // 此处
+                // }
 
                 /**
                  * 传入的数据只能是对象或者对象数组
@@ -236,7 +259,9 @@ const inputChecker1 = async (input, rules) => {
                     }
                 }
                 else {
-                    input[i] = await inputChecker1(input[i], rule.attr)
+                    if (input[i] && rule.attr) {
+                        input[i] = await inputChecker1(input[i], rule.attr)
+                    }
                 }
 
             }
@@ -249,58 +274,67 @@ const inputChecker1 = async (input, rules) => {
 
 
     // 确保传进来的参数，是规则期望的参数
-    for (let j in input) {
-        if (!j || j == "") //存在键不合法的属性
+    if (isArray(input)) {
+        for(let i in input)
         {
-            throw new Error("参数校验失败,接收了键值为空的参数:" + j);
+            input[i] = await inputChecker1(input[i],rules);
         }
-        if (!map.has(j)) {
-            throw new Error("参数校验失败,接收了不期望的参数:" + j);
-        }
-        if (isObject(input[j])) {
-            if (!isObject(rules[j])) {
-                let checkerObj = {}
-                checkerObj = getValidateObjectByStr(rules[j]);
-
-                // 这里可以是transaction
-                if (!(checkerObj['dataType'] && checkerObj['dataType'] == "isTransaction")) {
-                    throw new Error(`字段${j}为object类型，但对应校验规则并不是object`);
+    }
+    else if (isObject(input)) {
+        for (let j in input) {
+            if (!j || j == "") //存在键不合法的属性
+            {
+                throw new Error("参数校验失败,接收了键值为空的参数:" + j);
+            }
+            if (isObject(input)) {
+                if (!map.has(j)) {
+                    throw new Error("参数校验失败,接收了不期望的参数:" + j);
                 }
-                continue;
             }
-            input[j] = await inputChecker1(input[j], rules[j].attr)
+            if (isObject(input[j])) {
+                if (!isObject(rules[j])) {
+                    let checkerObj = {}
+                    checkerObj = getValidateObjectByStr(rules[j]);
 
-        }
-        else if (isArray(input[j])) {
-            if (!isArray(rules[j])) {
-                throw new Error(`字段${j}为array类型，但对应校验规则并不是array`);
-            }
-            if (!rules[j][0]) {
-                throw new Error(`字段${j}为array类型，但对应校验规则数组为空`);
-            }
-            if (!isObject(rules[j][0])) {
-                throw new Error(`字段${j}为array类型，但对应校验规则数组的第一个元素不是对象`);
-
-            }
-
-            if (rules[j].attr) {
+                    // 这里可以是transaction
+                    if (!(checkerObj['dataType'] && checkerObj['dataType'] == "isTransaction")) {
+                        throw new Error(`字段${j}为object类型，但对应校验规则并不是object`);
+                    }
+                    continue;
+                }
                 input[j] = await inputChecker1(input[j], rules[j].attr)
+
             }
-            else {
-                input[j] = await inputChecker1(input[j], rules[j])
+            else if (isArray(input[j])) {
+                if (!isArray(rules[j])) {
+                    throw new Error(`字段${j}为array类型，但对应校验规则并不是array`);
+                }
+                if (!rules[j][0]) {
+                    throw new Error(`字段${j}为array类型，但对应校验规则数组为空`);
+                }
+                if (!isObject(rules[j][0])) {
+                    throw new Error(`字段${j}为array类型，但对应校验规则数组的第一个元素不是对象`);
+                }
+
+                if (rules[j].attr) {
+                    input[j] = await inputChecker1(input[j], rules[j].attr)
+                }
+                else {
+                    input[j] = await inputChecker1(input[j], rules[j])
+                }
+
             }
+            // else
+            // {
+            //     input[j] = await inputChecker1(input, rules)
+            // }
+
+            inputMap.set(j, input[j]);
 
         }
-        // else
-        // {
-        //     input[j] = await inputChecker1(input, rules)
-        // }
-
-        inputMap.set(j, input[j]);
 
     }
-
-
+    
     //开始校验
     await $dataChecker(checkerRules, input)
     return input;
