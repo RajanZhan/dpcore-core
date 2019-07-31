@@ -231,10 +231,11 @@ const inputChecker1 = async (input, rules) => {
                 /**
                  * 传入的数据只能是对象或者对象数组
                  */
-                if (!isArray(input[i]) && !isObject(input[i])) {
+                if ( input[i] && !isArray(input[i]) && !isObject(input[i]) ) {
 
                     // 这里处理 查询的结果为空数组的情况
                     if (!isArray(rules[i])) {
+
                         throw new Error(`字段${i}期望的数据数组或者对象数组，但传入的数据都不符合`);
                     }
                 }
@@ -247,7 +248,10 @@ const inputChecker1 = async (input, rules) => {
                 }
 
                 if (ruleIsObjectiso && !isObject(input[i])) {
-                    throw new Error(`校验${i}规则期望数据为object，但传入的值不是object`);
+                    if(rule.require)
+                    {
+                        throw new Error(`校验${i}规则期望数据为object，但传入的值不是object`);
+                    }
                 }
 
                 // 如果传入的是数组，需要for循环处理
