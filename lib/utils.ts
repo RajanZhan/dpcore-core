@@ -116,6 +116,14 @@ const inputChecker1 = async (input, rules) => {
     if (isObject(input) && isArray(rules) && rules[0] && rules[0].attr) {
         rules = rules[0].attr
     }
+ 
+
+    // 当传入的rules对象为 {require，attr} 时
+    if(isObject(rules) && rules.attr && rules.require != undefined)
+    {
+        rules = rules.attr;
+    }
+
     // if (!isEmptyObject(rules) && isEmptyObject(input)) {
     //     throw new Error("本接口不接受空参数");
     // }
