@@ -377,7 +377,7 @@ export default async (dbconfig: Config["db"], entitys: Entity[]) => {
                             // 一对多
                             case "1vn":
                                 // 说明外键存在于目标模型
-                                if (targetKeyArr[0] != relation.entityName ) {
+                                if (fkeyEntityArr[0] != relation.entityName ) {
                                     throw new Error(`实体${entity['prototype']['$Meta']['$EntityName']} 的第${i}个模型关联存在问题，1对多关联中，外键必须存在于目标模型 `);
                                 }
                                 else {
