@@ -35,6 +35,11 @@ const defaultConfig = {
         expire: 1200,
     },
     port:8081,
+    // 默认分页
+    pagination:{
+        page:1,
+        psize:30
+    },
     staticPath:['/static'],
 }
 
