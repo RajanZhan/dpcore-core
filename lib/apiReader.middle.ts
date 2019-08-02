@@ -9,8 +9,8 @@ export default (app) => {
         if ($controllerApis) {
             for (let i of $controllerApis.keys()) {
                 list.push({
-                    url: i,
-                    info: $controllerApis.get(i)
+                    "接口地址": i,
+                    "接口描述": $controllerApis.get(i)
                 })
             }
         }
