@@ -17,6 +17,10 @@ import ModelRegister from "./lib/ModelRegister"
 import session from "./lib/session"
 import cache from "./lib/cache"
 
+import apireader from "./lib/apiReader.middle" // 文档自动生成中间件
+
+
+
 interface runConfig {
     port: number,// 启动的端口
     protocal: {
@@ -30,17 +34,17 @@ interface runConfig {
  * 系统默认配置
  */
 const defaultConfig = {
-    debug:1,
+    debug: 1,
     cookie: {
         expire: 1200,
     },
-    port:8081,
+    port: 8081,
     // 默认分页
-    pagination:{
-        page:1,
-        psize:30
+    pagination: {
+        page: 1,
+        psize: 30
     },
-    staticPath:['/static'],
+    staticPath: ['/static'],
 }
 
 class Application {
@@ -58,7 +62,7 @@ class Application {
      */
     public async  start(): Promise<{ server: any, app: any }> {
         try {
-            
+
             interface AppInstance {
                 $Meta: {
                     $config: Config,
@@ -69,35 +73,35 @@ class Application {
                     $Models: Model[],
                 }
             }
-            
+
             var instance: AppInstance = <any>this;
-            instance.$Meta = instance.$Meta? instance.$Meta:<any>{};
+            instance.$Meta = instance.$Meta ? instance.$Meta : <any>{};
             var $config = instance.$Meta.$config;
             const $Middleware = instance.$Meta.$Middleware;
             const $Controllers = instance.$Meta.$Controllers;
             const $Validate = instance.$Meta.$Validate;
             const $Entitys = instance.$Meta.$Entitys;
             const $Models = instance.$Meta.$Models;
-            $config = {...defaultConfig,...$config }
+            $config = { ...defaultConfig, ...$config }
             // console.log($config, "应用启动")
             // return;
             const colors = require("colors");
             const template = require('art-template');
             const cookieParser = require('cookie-parser');
             const bodyParser = require('body-parser');
-    
+
             //const middleware = require("./common/middleWare");
             const logger = require("./lib/logger.js").default;
             const http = require("http");
             const https = require('https')
-    
+
             // 设置模板引擎 start
             template.config('base', '');
             template.config('extname', '.html');
             app.engine('.html', template.__express);
             app.set('view engine', 'html');
             // 设置模板引擎 end
-    
+
             // 注册全局对象，方法
             global['regGlobal'] = (name, obj) => {
                 global[name] = obj
@@ -108,7 +112,7 @@ class Application {
             const $dataChecker = require("./lib/validate.core.v1").default
             global['$dataChecker'] = $dataChecker;
             global['$cache'] = await cache();
-    
+
             if ($config.cross == 1) {
                 app.use((req, res, next) => {
                     res.header("Access-Control-Allow-Origin", "*");
@@ -159,7 +163,7 @@ class Application {
             }
             //挂载静态目录
             if ($config.debug == 1) {
-    
+
                 if ($config.staticPath && $config.staticPath.length > 0) {
                     for (let p of $config.staticPath) {
                         if (!p) {
@@ -183,12 +187,26 @@ class Application {
                     }
                 }
             }
-    
+
+            // 文档自动生成 插件
+            if ($config.debug == 1) {
+                apireader(app)
+            }
+
+            // 挂载系统中间件
+            app.use((req, res, next) => {
+                next();
+            })
+
             // 载入中间件
             if ($Middleware) {
                 //app.use($Middleware)
                 $Middleware(app)
             }
+
+
+
+
             // var sysMiddleware = require("./lib/middleware").default;
             // app.use(sysMiddleware);
             // middleware(app); // 调用自定义中间件
@@ -196,31 +214,31 @@ class Application {
             // //router(app);
             // //require("./lib/controller.core")(app, require("./common/router"));
             // require("./lib/map.core").default(app);
-    
+
             // 注册控制器
-            mapCore(app, $Controllers, $config,this);
-    
+            mapCore(app, $Controllers, $config, this);
+
             // 实例化数据库
             const db = await dbiniter($config.db, $Entitys);
             regGlobal("$db", db)
-    
-    
+
+
             // let build = require("./build.js").default;
             // regGlobal("$build", build);
             // //console.log(build);
-    
+
             // // 注册逻辑层
             // require("./lib/LogicRegister").default();
-    
+
             // // 注册model
-            ModelRegister($Models,this);
-    
+            ModelRegister($Models, this);
+
             // // 注册微服务
             // if ($config && $config.msServer && $config.msServer.isUse) {
             //     require("./lib/microServer").default();
             // }
             // //console.log("我服务",$config);
-    
+
             // // 初始化微服务客户端
             // if ($config && $config.msClient && $config.msClient.isUse) {
             //     global.$msClient = require("./lib/microClient").default;
@@ -230,7 +248,7 @@ class Application {
             //         throw new Error("无法调用rpc，请先启用rpc client，并且完成正确的配置");
             //     }
             // }
-    
+
             //console.log("model test ",$model("System.test",{}));
             let port = $config.port ? $config.port : 8001;
             let host = $config.host ? $config.host : "0.0.0.0";
@@ -252,15 +270,15 @@ class Application {
             else {
                 server = http.createServer(app).listen(port, host);
             }
-    
-    
+
+
             // // var io = require('socket.io')(server);
             // await require("./common/start").default(app, server);
-    
+
             // await require("./lib/RegisterApp").default(); // 注册应用
             // //app.listen($config.port, $config.host);
             // //console.log("路由权限注册 ",$appRight);
-    
+
             let msg = <any>"";
             if (isHttps) {
                 msg = ` 启动信息： 协议:[https]  绑定的IP[${host}]  监听端口 [${port}] 启动模式[${$config.debug == 1 ? 'Debug' : 'Release'}] `
@@ -269,7 +287,7 @@ class Application {
                 msg = `启动信息： 协议:[http]  绑定的IP[${host}]  监听端口 [${port}] 启动模式[${$config.debug == 1 ? 'Debug' : 'Release'}] `
             }
             console.log(msg.cyan);
-    
+
             app.use((req, res, next) => {
                 if ($config.notFound) {
                     let oriURL = req.path;
@@ -285,9 +303,9 @@ class Application {
                 app,
             };
         } catch (error) {
-            console.error("启动失败，异常信息",error);
+            console.error("启动失败，异常信息", error);
         }
-        
+
     }
 
 }
@@ -311,7 +329,7 @@ const ControllerInject = (ctrl: any[]) => {
 /**
  * model 注册器
  */
-const ModelInject = (models:any[]) => {
+const ModelInject = (models: any[]) => {
     return function (target: any) {
         target.prototype.$Meta = target.prototype.$Meta ? target.prototype.$Meta : {}
         target.prototype.$Meta.$Models = models;
